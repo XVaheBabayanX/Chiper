@@ -42,7 +42,7 @@ echo 9.  Decompress Text
 echo 10. Compress File 
 echo 11. Decompress File
 echo 12. Calculate Hash Value
-echo 0. Exit
+echo 0.  Exit
 echo ===================================
 set /p choice="Select an option: "
 
@@ -172,7 +172,7 @@ echo ===================================
 set /p filename="Enter the file name: "
 
 set inputFile=!inputDir!\!filename!
-set outputFile=!encryptedDir!\Encrypted!filename!
+set outputFile=!encryptedDir!\Encrypted_!algorithm!_!filename!
 
 if not exist "!inputFile!" (
     echo File "!inputFile!" does not exist.
@@ -219,8 +219,8 @@ echo     Enter File Name to Decrypt
 echo ===================================
 set /p filename="Enter the file name: "
 
-set inputFile=!encryptedDir!\!filename!
-set outputFile=!decryptedDir!\Decrypted!filename!
+set inputFile=!inputDir!\!filename!
+set outputFile=!decryptedDir!\Decrypted_!algorithm!_!filename!
 
 if not exist "!inputFile!" (
     echo File "!inputFile!" does not exist.
@@ -290,7 +290,7 @@ goto menu
 :compress_file
 cls
 echo ===================================
-echo     Choose Encryption Algorithm
+echo     Choose Compression Algorithm
 echo ===================================
 echo 1. LZ77
 echo 2. RLE
@@ -316,7 +316,7 @@ echo ===================================
 set /p filename="Enter the file name: "
 
 set inputFile=!inputDir!\!filename!
-set outputFile=!encryptedDir!\Compressed!filename!
+set outputFile=!compressDir!\Compressed_!algorithm!_!filename!
 
 if not exist "!inputFile!" (
     echo File "!inputFile!" does not exist.
@@ -334,7 +334,7 @@ goto menu
 :decompress_file
 cls
 echo ===================================
-echo     Choose Encryption Algorithm
+echo     Choose Decompression Algorithm
 echo ===================================
 echo 1. LZ77
 echo 2. RLE
@@ -360,7 +360,7 @@ echo ===================================
 set /p filename="Enter the file name: "
 
 set inputFile=!inputDir!\!filename!
-set outputFile=!encryptedDir!\Decompressed!filename!
+set outputFile=!decompressDir!\Decompressed_!algorithm!_!filename!
 
 if not exist "!inputFile!" (
     echo File "!inputFile!" does not exist.

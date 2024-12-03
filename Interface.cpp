@@ -4,7 +4,6 @@
 #include <sstream>
 #include "Cipher.h"
 #include "Compressor.h"
-#include <filesystem>
 
 enum class MyMode
 {
@@ -102,15 +101,14 @@ int main(int argc, char* argv[])
     MyMode mode;
     MyCipher algorithm;
 
-    std::cout << "Input argument: " << inputArg << "\n";
     MyFile inputType = (inputArg.find('.') != std::string::npos && outputArg.find('.') != std::string::npos) ? MyFile::File : MyFile::Text;
 
     if(inputType == MyFile::File)
     {
-        std::string inputPath = convertPathToDoubleSlashes(inputArg);
-        std::string outputPath = convertPathToDoubleSlashes(outputArg);
-        //inputPath = inputArg;
-        //outputPath = outputArg;
+        inputPath = convertPathToDoubleSlashes(inputArg);
+        outputPath = convertPathToDoubleSlashes(outputArg);
+        std::cout << "Input path: " << inputPath << "\n";
+        std::cout << "Output path: " << outputPath << "\n";
     }
 
     if (modeArg == "encrypt")
@@ -163,9 +161,9 @@ int main(int argc, char* argv[])
         else if (inputType == MyFile::File)
         {
             std::ifstream inputFile(inputPath, std::ios::in);
-            if (!inputFile)
+            if (!inputFile.is_open())
             {
-                std::cerr << "Failed to open input file.\n";
+                std::cerr << "Input file does not exist: " << inputPath << "\n";
                 return 1;
             }
             std::string fileContent((std::istreambuf_iterator<char>(inputFile)), std::istreambuf_iterator<char>());
@@ -252,9 +250,9 @@ int main(int argc, char* argv[])
         else if (inputType == MyFile::File)
         {
             std::ifstream inputFile(inputPath, std::ios::in);
-            if (!inputFile)
+            if (!inputFile.is_open())
             {
-                std::cerr << "Failed to open input file.\n";
+                std::cerr << "Input file does not exist: " << inputPath << "\n";
                 return 1;
             }
             std::string fileContent((std::istreambuf_iterator<char>(inputFile)), std::istreambuf_iterator<char>());
@@ -335,9 +333,9 @@ int main(int argc, char* argv[])
         else if (inputType == MyFile::File)
         {
             std::ifstream inputFile(inputPath, std::ios::in);
-            if (!inputFile)
+            if (!inputFile.is_open())
             {
-                std::cerr << "Failed to open input file.\n";
+                std::cerr << "Input file does not exist: " << inputPath << "\n";
                 return 1;
             }
             std::string fileContent((std::istreambuf_iterator<char>(inputFile)), std::istreambuf_iterator<char>());
@@ -361,7 +359,7 @@ int main(int argc, char* argv[])
         case MyCipher::Huffman:
         {
             compressor.huffman()->Compress(Original, Compressed);
-            compressor.huffman()->printTree();
+            //compressor.huffman()->printTree();
             Write(mode, inputType, outputPath, Compressed);
             break;
         }
@@ -381,9 +379,9 @@ int main(int argc, char* argv[])
         else if (inputType == MyFile::File)
         {
             std::ifstream inputFile(inputPath, std::ios::in);
-            if (!inputFile)
+            if (!inputFile.is_open())
             {
-                std::cerr << "Failed to open input file.\n";
+                std::cerr << "Input file does not exist: " << inputPath << "\n";
                 return 1;
             }
             std::string fileContent((std::istreambuf_iterator<char>(inputFile)), std::istreambuf_iterator<char>());
@@ -410,7 +408,7 @@ int main(int argc, char* argv[])
             std::cout << "Enter pairs of (character, frequency) separated by commas (e.g., A5,B3,C2,D1): ";
             std::getline(std::cin, inputTree);
             compressor.huffman()->setTreeFromInput(inputTree);
-            compressor.huffman()->printTree();
+            //compressor.huffman()->printTree();
             compressor.huffman()->Decompress(Compressed, Decompressed);
             Write(mode, inputType, outputPath, Decompressed);
             break;
