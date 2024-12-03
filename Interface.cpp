@@ -104,10 +104,10 @@ int main(int argc, char* argv[])
 
     if(inputType == MyFile::File)
     {
-        //std::string inputPath = convertPathToDoubleSlashes(inputArg);
-        //std::string outputPath = convertPathToDoubleSlashes(outputArg);
-        inputPath = inputArg;
-        outputPath = outputArg;
+        std::string inputPath = convertPathToDoubleSlashes(inputArg);
+        std::string outputPath = convertPathToDoubleSlashes(outputArg);
+        //inputPath = inputArg;
+        //outputPath = outputArg;
         std::cout << "Input path: " << inputPath << "\n";
         std::cout << "Output path: " << outputPath << "\n";
 

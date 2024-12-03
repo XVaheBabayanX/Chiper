@@ -2,14 +2,24 @@
 setlocal enabledelayedexpansion
 
 set scriptDir=%~dp0
+for %%i in ("%scriptDir%..\") do set baseDir=%%~fi
+set chiperExe=!baseDir!x64\Debug\Chiper.exe
+
+if not exist "!chiperExe!" (
+    echo Error: Chiper.exe not found at "!chiperExe!".
+    pause
+    exit /b
+)
 
 set encryptedDir=!scriptDir!Encrypted
 set decryptedDir=!scriptDir!Decrypted
 set inputDir=!scriptDir!Input
+set hashDir=!scriptDir!Hash
 
 if not exist "!encryptedDir!" mkdir "!encryptedDir!"
 if not exist "!decryptedDir!" mkdir "!decryptedDir!"
 if not exist "!inputDir!" mkdir "!inputDir!"
+if not exist "!hashDir!" mkdir "!hashDir!"
 
 :menu
 cls
@@ -25,7 +35,7 @@ echo 6. Encrypt File
 echo 7. Decrypt File
 echo 8. Compress File 
 echo 9. Decompress File
-echo 10. Calculate Hash Value (Text/File)
+echo 10. Calculate Hash Value
 echo 0. Exit
 echo ===================================
 set /p choice="Select an option: "
@@ -87,7 +97,7 @@ if not defined algorithm (
 )
 
 set mode=encrypt
-"D:\Visual Studio\С++\ProgSystemDefending\Chiper\x64\Debug\Chiper.exe" %mode% %algorithm% text text
+"!chiperExe!" %mode% %algorithm% text text
 pause
 goto menu
 
@@ -117,7 +127,7 @@ if not defined algorithm (
 )
 
 set mode=decrypt
-"D:\Visual Studio\С++\ProgSystemDefending\Chiper\x64\Debug\Chiper.exe" %mode% %algorithm% text text
+"!chiperExe!" %mode% %algorithm% text text
 pause
 goto menu
 
@@ -156,10 +166,16 @@ set /p filename="Enter the file name: "
 set inputFile=!inputDir!\!filename!
 set outputFile=!encryptedDir!\Encrypted!filename!
 
+if not exist "!inputFile!" (
+    echo File "!inputFile!" does not exist.
+    pause
+    goto menu
+)
+
 echo Encrypting file: !inputFile!
 echo Encrypted file will be saved as: !outputFile!
 
-"D:\Visual Studio\С++\ProgSystemDefending\Chiper\x64\Debug\Chiper.exe" %mode% %algorithm% "!inputFile!" "!outputFile!"
+"!chiperExe!" %mode% %algorithm% "!inputFile!" "!outputFile!"
 pause
 goto menu
 
@@ -198,10 +214,16 @@ set /p filename="Enter the file name: "
 set inputFile=!encryptedDir!\!filename!
 set outputFile=!decryptedDir!\Decrypted!filename!
 
+if not exist "!inputFile!" (
+    echo File "!inputFile!" does not exist.
+    pause
+    goto menu
+)
+
 echo Decrypting file: !inputFile!
 echo Decrypted file will be saved as: !outputFile!
 
-"D:\Visual Studio\С++\ProgSystemDefending\Chiper\x64\Debug\Chiper.exe" %mode% %algorithm% "!inputFile!" "!outputFile!"
+"!chiperExe!" %mode% %algorithm% "!inputFile!" "!outputFile!"
 pause
 goto menu
 
@@ -218,17 +240,50 @@ pause
 goto menu
 
 :hash_value
-set /p input="!!!!! Enter text or file path: "
-echo Default Hashing. Result in def-hash-%input% file
-certutil -hashfile %input% > def-hash-%input%
-echo Calculate Hash Value with MD5. Result in MD5-%input% file 
-certutil -hashfile %input% MD5 > MD5%input%
-echo Calculate Hash Value with SHA256. Result in SHA256-%input% file 
-certutil -hashfile %input% SHA256 > SHA256-%input%
+cls
+echo ===================================
+echo       Calculate Hash Value
+echo ===================================
+echo 1. Default Hash
+echo 2. MD5
+echo 3. SHA256
+echo ===================================
+set /p hash_choice="Select hash type (1-3): "
+
+echo ===================================
+echo     Enter File Name for Hash
+echo ===================================
+set /p filename="Enter the file name (from Input directory): "
+
+set inputFile=!inputDir!\!filename!
+set outputFile=!hashDir!\Hash-!filename!
+
+if not exist "!inputFile!" (
+    echo File "!inputFile!" does not exist.
+    pause
+    goto menu
+)
+
+if "%hash_choice%"=="1" (
+    echo Calculating Default Hash...
+    certutil -hashfile "!inputFile!" > "!outputFile!-default.txt"
+    echo Hash saved to "!outputFile!-default.txt"
+) else if "%hash_choice%"=="2" (
+    echo Calculating MD5 Hash...
+    certutil -hashfile "!inputFile!" MD5 > "!outputFile!-md5.txt"
+    echo Hash saved to "!outputFile!-md5.txt"
+) else if "%hash_choice%"=="3" (
+    echo Calculating SHA256 Hash...
+    certutil -hashfile "!inputFile!" SHA256 > "!outputFile!-sha256.txt"
+    echo Hash saved to "!outputFile!-sha256.txt"
+) else (
+    echo Invalid choice. Please try again.
+    pause
+    goto hash_value
+)
 pause
 goto menu
 
+
 :exit
 echo Exiting... Goodbye!
-
-::exit
