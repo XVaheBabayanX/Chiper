@@ -4,10 +4,8 @@
 #include <sstream>
 #include "Cipher.h"
 #include <filesystem>
-namespace fs = std::filesystem;
 
-const std::string YES = "y";
-const std::string NO = "n";
+namespace fs = std::filesystem;
 
 enum class MyMode
 {
@@ -40,6 +38,46 @@ std::string convertPathToDoubleSlashes(const std::string& path) {
     return convertedPath;
 }
 
+void Write(MyMode mode, MyFile inputType, std::string outputPath, std::string output)
+{
+    if (mode == MyMode::ENCRYPT)
+    {
+        if (inputType == MyFile::Text)
+        {
+            std::cout << "Encrypted Text: " << output << "\n";
+        }
+        else if (inputType == MyFile::File)
+        {
+            std::ofstream outputFile(outputPath, std::ios::out);
+            if (!outputFile)
+            {
+                std::cerr << "Failed to open output file.\n";
+            }
+            outputFile << output;
+            outputFile.close();
+            std::cout << "File encrypted successfully.\n";
+        }
+    }
+    else if (mode == MyMode::DECRYPT)
+    {
+        if (inputType == MyFile::Text)
+        {
+            std::cout << "Decrypted Text: " << output << "\n";
+        }
+        else if (inputType == MyFile::File)
+        {
+            std::ofstream outputFile(outputPath, std::ios::out);
+            if (!outputFile)
+            {
+                std::cerr << "Failed to open output file.\n";
+            }
+            outputFile << output;
+            outputFile.close();
+            std::cout << "File decrypted successfully.\n";
+        }
+    }
+}
+
 int main(int argc, char* argv[])
 {
     if (argc < 5)
@@ -53,6 +91,9 @@ int main(int argc, char* argv[])
     std::string inputArg = argv[3];
     std::string outputArg = argv[4];
 
+    std::string inputPath = "Text";
+    std::string outputPath = "Text";
+
     MyMode mode;
     MyCipher algorithm;
 
@@ -61,21 +102,24 @@ int main(int argc, char* argv[])
     std::cout << "Determined input type: "
         << (inputType == MyFile::File ? "File" : "Text") << "\n";
 
-    //std::string inputPath = convertPathToDoubleSlashes(inputArg);
-    //std::string outputPath = convertPathToDoubleSlashes(outputArg);
-    std::string inputPath = inputArg;
-    std::string outputPath = outputArg;
-    std::cout << "Input path: " << inputPath << "\n";
-    std::cout << "Output path: " << outputPath << "\n";
-       
-    //if (!fs::exists(inputPath)) {
-    //    std::cerr << "File does not exist: " << inputPath << std::endl;
-    //    return 1;
-    //}
-    //if (!fs::is_regular_file(inputPath)) {
-    //    std::cerr << "Path exists but is not a file: " << inputPath << std::endl;
-    //    return 1;
-    //}
+    if(inputType == MyFile::File)
+    {
+        //std::string inputPath = convertPathToDoubleSlashes(inputArg);
+        //std::string outputPath = convertPathToDoubleSlashes(outputArg);
+        inputPath = inputArg;
+        outputPath = outputArg;
+        std::cout << "Input path: " << inputPath << "\n";
+        std::cout << "Output path: " << outputPath << "\n";
+
+        //if (!fs::exists(inputPath)) {
+        //    std::cerr << "File does not exist: " << inputPath << std::endl;
+        //    return 1;
+        //}
+        //if (!fs::is_regular_file(inputPath)) {
+        //    std::cerr << "Path exists but is not a file: " << inputPath << std::endl;
+        //    return 1;
+        //}
+    }
 
     if (modeArg == "encrypt")
         mode = MyMode::ENCRYPT;
@@ -107,80 +151,11 @@ int main(int argc, char* argv[])
 
     if (mode == MyMode::ENCRYPT)
     {
+        std::string Original, Encrypted;
         if (inputType == MyFile::Text)
         {
-            std::string Original, Encrypted;
             std::cout << "Input Text: ";
             std::getline(std::cin, Original);
-
-            switch (algorithm)
-            {
-            case MyCipher::Caesar:
-            {
-                size_t Shift;
-                std::cout << "Input Shift: ";
-                std::cin >> Shift;
-                cipher.caesar()->setShift(Shift);
-                cipher.caesar()->Encrypt(Original, Encrypted);
-                std::cout << "Encrypted Text: " << Encrypted << "\n";
-                break;
-            }
-            case MyCipher::Polybius:
-            {
-                std::string Key;
-                std::cout << "Input Key: ";
-                std::getline(std::cin, Key);
-                cipher.polybius()->setKey(Key);
-                cipher.polybius()->Encrypt(Original, Encrypted);
-                std::cout << "Encrypted Text: " << Encrypted << "\n";
-                break;
-            }
-            case MyCipher::SimpleSubstitution:
-            {
-                std::string Key;
-                std::cout << "Input Key: ";
-                std::getline(std::cin, Key);
-                cipher.simplesubstitution()->setKey(Key);
-                cipher.simplesubstitution()->Encrypt(Original, Encrypted);
-                std::cout << "Encrypted Text: " << Encrypted << "\n";
-                break;
-            }
-            case MyCipher::Transposition:
-            {
-                size_t Key;
-                do {
-                    std::cout << "Input key (0 for random key) Values( 1 - " << Original.size() << " ) : ";
-                    std::cin >> Key;
-                } while (Key > Original.size());
-
-                if (Key == 0) {
-                    Key = cipher.transposition()->GenerateRandomKey(Original.size());
-                    std::cout << "Generated random key: " << Key << std::endl;
-                }
-
-                if (Key == 0) {
-                    std::cerr << "Key cannot be 0." << std::endl;
-                    return 1;
-                }
-                cipher.transposition()->setKey(Key);
-                cipher.transposition()->Encrypt(Original, Encrypted);
-                std::cout << "Encrypted Text: " << Encrypted << "\n";
-                break;
-            }
-            case MyCipher::Vigenere:
-            {
-                std::string Key;
-                std::cout << "Input Key: ";
-                std::getline(std::cin, Key);
-                cipher.vigenere()->setKey(Key);
-                cipher.vigenere()->Encrypt(Original, Encrypted);
-                std::cout << "Encrypted Text: " << Encrypted << "\n";
-                break;
-            }
-            default:
-                std::cerr << "Cipher not implemented for encryption.\n";
-                return 1;
-            }
         }
         else if (inputType == MyFile::File)
         {
@@ -190,126 +165,86 @@ int main(int argc, char* argv[])
                 std::cerr << "Failed to open input file.\n";
                 return 1;
             }
-
             std::string fileContent((std::istreambuf_iterator<char>(inputFile)), std::istreambuf_iterator<char>());
             inputFile.close();
-
-            std::string Encrypted;
+            Original = fileContent;
+        }
+        switch (algorithm)
+        {
+        case MyCipher::Caesar:
+        {
             size_t Shift;
+            std::cout << "Input Shift: ";
+            std::cin >> Shift;
+            cipher.caesar()->setShift(Shift);
+            cipher.caesar()->Encrypt(Original, Encrypted);
+            Write(mode, inputType, outputPath, Encrypted);
+            break;
+        }
+        case MyCipher::Polybius:
+        {
+            std::string Key;
+            std::cout << "Input Key: ";
+            std::getline(std::cin, Key);
+            cipher.polybius()->setKey(Key);
+            cipher.polybius()->Encrypt(Original, Encrypted);
+            Write(mode, inputType, outputPath, Encrypted);
+            break;
+        }
+        case MyCipher::SimpleSubstitution:
+        {
+            std::string Key;
+            std::cout << "Input Key: ";
+            std::getline(std::cin, Key);
+            cipher.simplesubstitution()->setKey(Key);
+            cipher.simplesubstitution()->Encrypt(Original, Encrypted);
+            Write(mode, inputType, outputPath, Encrypted);
+            break;
+        }
+        case MyCipher::Transposition:
+        {
+            size_t Key;
+            do {
+                std::cout << "Input key (0 for random key) Values( 1 - " << Original.size() << " ) : ";
+                std::cin >> Key;
+            } while (Key > Original.size());
 
-            switch (algorithm)
-            {
-            case MyCipher::Caesar:
-            {
-                std::cout << "Input Shift: ";
-                std::cin >> Shift;
-                cipher.caesar()->setShift(Shift);
-                cipher.caesar()->Encrypt(fileContent, Encrypted);
-                break;
+            if (Key == 0) {
+                Key = cipher.transposition()->GenerateRandomKey(Original.size());
+                std::cout << "Generated random key: " << Key << std::endl;
             }
-            case MyCipher::Polybius:
-            {
-                break;
-            }
-            case MyCipher::SimpleSubstitution:
-            {
-                break;
-            }
-            case MyCipher::Transposition:
-            {
-                break;
-            }
-            case MyCipher::Vigenere:
-            {
-                break;
-            }
-            default:
-                std::cerr << "Cipher not implemented for file encryption.\n";
+
+            if (Key == 0) {
+                std::cerr << "Key cannot be 0." << std::endl;
                 return 1;
             }
-
-            std::ofstream outputFile(outputPath, std::ios::out);
-            if (!outputFile)
-            {
-                std::cerr << "Failed to open output file.\n";
-                return 1;
-            }
-
-            outputFile << Encrypted;
-            outputFile.close();
-            std::cout << "File encrypted successfully.\n";
+            cipher.transposition()->setKey(Key);
+            cipher.transposition()->Encrypt(Original, Encrypted);
+            Write(mode, inputType, outputPath, Encrypted);
+            break;
+        }
+        case MyCipher::Vigenere:
+        {
+            std::string Key;
+            std::cout << "Input Key: ";
+            std::getline(std::cin, Key);
+            cipher.vigenere()->setKey(Key);
+            cipher.vigenere()->Encrypt(Original, Encrypted);
+            Write(mode, inputType, outputPath, Encrypted);
+            break;
+        }
+        default:
+            std::cerr << "Cipher not implemented for encryption.\n";
+            return 1;
         }
     }
     else if (mode == MyMode::DECRYPT)
     {
+        std::string Encrypted, Decrypted;
         if (inputType == MyFile::Text)
         {
-            std::string Encrypted, Decrypted;
             std::cout << "Input Encrypted Text: ";
             std::getline(std::cin, Encrypted);
-
-            switch (algorithm)
-            {
-            case MyCipher::Caesar:
-            {
-                size_t Shift;
-                std::cout << "Input Shift: ";
-                std::cin >> Shift;
-                cipher.caesar()->setShift(Shift);
-                cipher.caesar()->Decrypt(Encrypted, Decrypted);
-                std::cout << "Decrypted Text: " << Decrypted << "\n";
-                break;
-            }
-            case MyCipher::Polybius:
-            {
-                std::string Key;
-                std::cout << "Input Key: ";
-                std::getline(std::cin, Key);
-                cipher.polybius()->setKey(Key);
-                cipher.polybius()->Decrypt(Encrypted, Decrypted);
-                std::cout << "Decrypted Text: " << Decrypted << "\n";
-                break;
-            }
-            case MyCipher::SimpleSubstitution:
-            {
-                std::string Key;
-                std::cout << "Input Key: ";
-                std::getline(std::cin, Key);
-                cipher.simplesubstitution()->setKey(Key);
-                cipher.simplesubstitution()->Decrypt(Encrypted, Decrypted);
-                std::cout << "Decrypted Text: " << Decrypted << "\n";
-                break;
-            }
-            case MyCipher::Transposition:
-            {
-                size_t Key;
-                do {
-                    std::cout << "Input key Values( 1 - " << Encrypted.size() << " ) : ";
-                    std::cin >> Key;
-                } while (Key > Encrypted.size());
-                if (Key == 0) {
-                    std::cerr << "Key cannot be 0." << std::endl;
-                    return 1;
-                }
-                cipher.transposition()->setKey(Key);
-                cipher.transposition()->Decrypt(Encrypted, Decrypted);
-                std::cout << "Decrypted Text: " << Decrypted << "\n";
-                break;
-            }
-            case MyCipher::Vigenere:
-            {
-                std::string Key;
-                std::cout << "Input Key: ";
-                std::getline(std::cin, Key);
-                cipher.vigenere()->setKey(Key);
-                cipher.vigenere()->Decrypt(Encrypted, Decrypted);
-                std::cout << "Decrypted Text: " << Decrypted << "\n";
-                break;
-            }
-            default:
-                std::cerr << "Cipher not implemented for decryption.\n";
-                return 1;
-            }
         }
         else if (inputType == MyFile::File)
         {
@@ -319,54 +254,72 @@ int main(int argc, char* argv[])
                 std::cerr << "Failed to open input file.\n";
                 return 1;
             }
-
             std::string fileContent((std::istreambuf_iterator<char>(inputFile)), std::istreambuf_iterator<char>());
             inputFile.close();
+            Encrypted = fileContent;
 
-            std::string Decrypted;
+        }
+        switch (algorithm)
+        {
+        case MyCipher::Caesar:
+        {
             size_t Shift;
-
-            switch (algorithm)
-            {
-            case MyCipher::Caesar:
-            {
-                std::cout << "Input Shift: ";
-                std::cin >> Shift;
-                cipher.caesar()->setShift(Shift);
-                cipher.caesar()->Decrypt(fileContent, Decrypted);
-                break;
-            }
-            case MyCipher::Polybius:
-            {
-                break;
-            }
-            case MyCipher::SimpleSubstitution:
-            {
-                break;
-            }
-            case MyCipher::Transposition:
-            {
-                break;
-            }
-            case MyCipher::Vigenere:
-            {
-                break;
-            }
-            default:
-                std::cerr << "Cipher not implemented for file decryption.\n";
+            std::cout << "Input Shift: ";
+            std::cin >> Shift;
+            cipher.caesar()->setShift(Shift);
+            cipher.caesar()->Decrypt(Encrypted, Decrypted);
+            Write(mode, inputType, outputPath, Decrypted);
+            break;
+        }
+        case MyCipher::Polybius:
+        {
+            std::string Key;
+            std::cout << "Input Key: ";
+            std::getline(std::cin, Key);
+            cipher.polybius()->setKey(Key);
+            cipher.polybius()->Decrypt(Encrypted, Decrypted);
+            Write(mode, inputType, outputPath, Decrypted);
+            break;
+        }
+        case MyCipher::SimpleSubstitution:
+        {
+            std::string Key;
+            std::cout << "Input Key: ";
+            std::getline(std::cin, Key);
+            cipher.simplesubstitution()->setKey(Key);
+            cipher.simplesubstitution()->Decrypt(Encrypted, Decrypted);
+            Write(mode, inputType, outputPath, Decrypted);
+            break;
+        }
+        case MyCipher::Transposition:
+        {
+            size_t Key;
+            do {
+                std::cout << "Input key Values( 1 - " << Encrypted.size() << " ) : ";
+                std::cin >> Key;
+            } while (Key > Encrypted.size());
+            if (Key == 0) {
+                std::cerr << "Key cannot be 0." << std::endl;
                 return 1;
             }
-
-            std::ofstream outputFile(outputPath, std::ios::out);
-            if (!outputFile)
-            {
-                std::cerr << "Failed to open output file.\n";
-                return 1;
-            }
-
-            outputFile << Decrypted;
-            outputFile.close();
-            std::cout << "File decrypted successfully.\n";
+            cipher.transposition()->setKey(Key);
+            cipher.transposition()->Decrypt(Encrypted, Decrypted);
+            Write(mode, inputType, outputPath, Decrypted);
+            break;
+        }
+        case MyCipher::Vigenere:
+        {
+            std::string Key;
+            std::cout << "Input Key: ";
+            std::getline(std::cin, Key);
+            cipher.vigenere()->setKey(Key);
+            cipher.vigenere()->Decrypt(Encrypted, Decrypted);
+            Write(mode, inputType, outputPath, Decrypted);
+            break;
+        }
+        default:
+            std::cerr << "Cipher not implemented for decryption.\n";
+            return 1;
         }
     }
 
