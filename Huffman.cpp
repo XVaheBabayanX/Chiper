@@ -1,5 +1,7 @@
 ﻿#include "Huffman.h"
 #include <queue>
+#include <sstream>
+#include <iostream>
 
 Huffman::Node::Node(char c, int f) : ch(c), freq(f), left(nullptr), right(nullptr) {}
 
@@ -29,7 +31,7 @@ void Huffman::buildHuffmanTree(const std::string& input) {
         pq.push(sum);
     }
 
-    Node* root = pq.top();
+    root = pq.top();
     generateCodes(root, "");
     generateReverseCodes();
 }
@@ -68,5 +70,85 @@ void Huffman::Decompress(const std::string& input, std::string& output) {
             output += reverseHuffmanCode[currentCode];
             currentCode.clear();
         }
+    }
+}
+
+void Huffman::setTreeFromInput(const std::string& input) {
+    std::vector<std::pair<char, int>> nodes;
+    std::istringstream iss(input);
+    char ch;
+    int freq;
+    char delimiter;
+
+    while (iss >> ch >> freq) {
+        nodes.push_back({ ch, freq });
+        if (iss.peek() == ',') {
+            iss >> delimiter;  
+        }
+    }
+
+    buildHuffmanTreeFromNodes(nodes);
+}
+
+
+void Huffman::buildHuffmanTreeFromNodes(const std::vector<std::pair<char, int>>& nodes) {
+    auto cmp = [](Node* left, Node* right) { return left->freq > right->freq; };
+    std::priority_queue<Node*, std::vector<Node*>, decltype(cmp)> pq(cmp);
+
+    for (const auto& pair : nodes) {
+        pq.push(new Node(pair.first, pair.second));
+    }
+
+    while (pq.size() > 1) {
+        Node* left = pq.top(); pq.pop();
+        Node* right = pq.top(); pq.pop();
+
+        Node* sum = new Node('\0', left->freq + right->freq);
+        sum->left = left;
+        sum->right = right;
+
+        pq.push(sum);
+    }
+
+    root = pq.top();
+    generateCodes(root, "");
+    generateReverseCodes();
+}
+
+Huffman::~Huffman() {
+    deleteTree(root);  
+}
+
+void Huffman::deleteTree(Node* node) {
+    if (node) {
+        deleteTree(node->left);
+        deleteTree(node->right);
+        delete node;
+    }
+}
+
+void Huffman::printTree() const {
+    printTreeHelper(root, 0);
+}
+
+void Huffman::printTreeHelper(Node* node, int level) const {
+    if (node == nullptr) return;
+
+    if (node->right) {
+        printTreeHelper(node->right, level + 1);
+    }
+
+    for (int i = 0; i < level; ++i) {
+        std::cout << "   ";  
+    }
+    if (node->ch != '\0') {
+        std::cout << node->ch << ":" << node->freq << std::endl;
+    }
+    else {
+        std::cout << "Internal Node:" << node->freq << std::endl;
+    }
+
+    if (node->left) {
+        printTreeHelper(node->left, level + 1);
     }
 }

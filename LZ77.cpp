@@ -10,20 +10,24 @@ void LZ77::Compress(const std::string& input, std::string& output) {
 
     std::ostringstream oss;
     for (const auto& token : tokens) {
-        oss << (char)token.offset;
-        oss << (char)token.length;
-        oss << token.nextChar;
+        oss << token.offset << ' ' << token.length << ' ' << (int)token.nextChar << ' ';
     }
 
     output = oss.str();
+    if (!output.empty() && output.back() == ' ') {
+        output.pop_back();
+    }
 }
 
 void LZ77::Decompress(const std::string& input, std::string& output) {
     std::vector<Token> tokens;
-    for (size_t i = 0; i < input.size(); i += 3) {
-        int offset = (unsigned char)input[i];
-        int length = (unsigned char)input[i + 1];
-        char nextChar = input[i + 2];
+    std::istringstream iss(input);
+    int offset, length;
+    int nextCharInt;
+    char nextChar;
+
+    while (iss >> offset >> length >> nextCharInt) {
+        nextChar = static_cast<char>(nextCharInt);
         tokens.push_back({ offset, length, nextChar });
     }
 
@@ -73,7 +77,7 @@ std::vector<char> LZ77::DecompressFromTokens(const std::vector<Token>& tokens) {
             output.push_back(token.nextChar);
         }
         else {
-            int start = output.size() - token.offset;
+            size_t start = output.size() - token.offset;
             for (int i = 0; i < token.length; ++i) {
                 output.push_back(output[start + i]);
             }

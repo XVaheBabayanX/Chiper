@@ -104,8 +104,6 @@ int main(int argc, char* argv[])
 
     std::cout << "Input argument: " << inputArg << "\n";
     MyFile inputType = (inputArg.find('.') != std::string::npos && outputArg.find('.') != std::string::npos) ? MyFile::File : MyFile::Text;
-    std::cout << "Determined input type: "
-        << (inputType == MyFile::File ? "File" : "Text") << "\n";
 
     if(inputType == MyFile::File)
     {
@@ -113,8 +111,6 @@ int main(int argc, char* argv[])
         std::string outputPath = convertPathToDoubleSlashes(outputArg);
         //inputPath = inputArg;
         //outputPath = outputArg;
-        std::cout << "Input path: " << inputPath << "\n";
-        std::cout << "Output path: " << outputPath << "\n";
     }
 
     if (modeArg == "encrypt")
@@ -365,6 +361,7 @@ int main(int argc, char* argv[])
         case MyCipher::Huffman:
         {
             compressor.huffman()->Compress(Original, Compressed);
+            compressor.huffman()->printTree();
             Write(mode, inputType, outputPath, Compressed);
             break;
         }
@@ -409,6 +406,11 @@ int main(int argc, char* argv[])
         }
         case MyCipher::Huffman:
         {
+            std::string inputTree;
+            std::cout << "Enter pairs of (character, frequency) separated by commas (e.g., A5,B3,C2,D1): ";
+            std::getline(std::cin, inputTree);
+            compressor.huffman()->setTreeFromInput(inputTree);
+            compressor.huffman()->printTree();
             compressor.huffman()->Decompress(Compressed, Decompressed);
             Write(mode, inputType, outputPath, Decompressed);
             break;
