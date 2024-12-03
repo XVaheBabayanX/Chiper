@@ -130,8 +130,12 @@
   <ItemGroup>
     <ClInclude Include="Caesar.h" />
     <ClInclude Include="Cipher.h" />
+    <ClInclude Include="Compressor.h" />
     <ClInclude Include="Crypto.h" />
+    <ClInclude Include="Huffman.h" />
+    <ClInclude Include="LZ77.h" />
     <ClInclude Include="Polybius.h" />
+    <ClInclude Include="RLE.h" />
     <ClInclude Include="SimpleSubstitution.h" />
     <ClInclude Include="Transposition.h" />
     <ClInclude Include="Vigenere.h" />
@@ -139,8 +143,12 @@
   <ItemGroup>
     <ClCompile Include="Caesar.cpp" />
     <ClCompile Include="Cipher.cpp" />
+    <ClCompile Include="Compressor.cpp" />
+    <ClCompile Include="Huffman.cpp" />
     <ClCompile Include="Interface.cpp" />
+    <ClCompile Include="LZ77.cpp" />
     <ClCompile Include="Polybius.cpp" />
+    <ClCompile Include="RLE.cpp" />
     <ClCompile Include="SimpleSubstitution.cpp" />
     <ClCompile Include="Transposition.cpp" />
     <ClCompile Include="Vigenere.cpp" />

@@ -3,14 +3,15 @@
 #include <fstream>
 #include <sstream>
 #include "Cipher.h"
+#include "Compressor.h"
 #include <filesystem>
-
-namespace fs = std::filesystem;
 
 enum class MyMode
 {
     ENCRYPT,
-    DECRYPT
+    DECRYPT,
+    COMPRESS,
+    DECOMPRESS
 };
 
 enum class MyCipher
@@ -19,7 +20,10 @@ enum class MyCipher
     Polybius,
     SimpleSubstitution,
     Transposition,
-    Vigenere
+    Vigenere,
+    LZ77,
+    RLE,
+    Huffman
 };
 
 enum class MyFile
@@ -40,41 +44,42 @@ std::string convertPathToDoubleSlashes(const std::string& path) {
 
 void Write(MyMode mode, MyFile inputType, std::string outputPath, std::string output)
 {
+    std::string text, action;
     if (mode == MyMode::ENCRYPT)
     {
-        if (inputType == MyFile::Text)
-        {
-            std::cout << "Encrypted Text: " << output << "\n";
-        }
-        else if (inputType == MyFile::File)
-        {
-            std::ofstream outputFile(outputPath, std::ios::out);
-            if (!outputFile)
-            {
-                std::cerr << "Failed to open output file.\n";
-            }
-            outputFile << output;
-            outputFile.close();
-            std::cout << "File encrypted successfully.\n";
-        }
+        text = "Encrypted";
+        action = "encrypted";
     }
     else if (mode == MyMode::DECRYPT)
     {
-        if (inputType == MyFile::Text)
+        text = "Decrypted";
+        action = "decrypted";
+    }
+    else if (mode == MyMode::COMPRESS)
+    {
+        text = "Compressed";
+        action = "compressed";
+    }
+    else if (mode == MyMode::DECOMPRESS)
+    {
+        text = "Decompressed";
+        action = "decompressed";
+    }
+
+    if (inputType == MyFile::Text)
+    {
+        std::cout << text <<" Text: " << output << "\n";
+    }
+    else if (inputType == MyFile::File)
+    {
+        std::ofstream outputFile(outputPath, std::ios::out);
+        if (!outputFile)
         {
-            std::cout << "Decrypted Text: " << output << "\n";
+            std::cerr << "Failed to open output file.\n";
         }
-        else if (inputType == MyFile::File)
-        {
-            std::ofstream outputFile(outputPath, std::ios::out);
-            if (!outputFile)
-            {
-                std::cerr << "Failed to open output file.\n";
-            }
-            outputFile << output;
-            outputFile.close();
-            std::cout << "File decrypted successfully.\n";
-        }
+        outputFile << output;
+        outputFile.close();
+        std::cout << "File "<< action <<" successfully.\n";
     }
 }
 
@@ -110,24 +115,19 @@ int main(int argc, char* argv[])
         //outputPath = outputArg;
         std::cout << "Input path: " << inputPath << "\n";
         std::cout << "Output path: " << outputPath << "\n";
-
-        //if (!fs::exists(inputPath)) {
-        //    std::cerr << "File does not exist: " << inputPath << std::endl;
-        //    return 1;
-        //}
-        //if (!fs::is_regular_file(inputPath)) {
-        //    std::cerr << "Path exists but is not a file: " << inputPath << std::endl;
-        //    return 1;
-        //}
     }
 
     if (modeArg == "encrypt")
         mode = MyMode::ENCRYPT;
     else if (modeArg == "decrypt")
         mode = MyMode::DECRYPT;
+    else if (modeArg == "compress")
+        mode = MyMode::COMPRESS;
+    else if (modeArg == "decompress")
+        mode = MyMode::DECOMPRESS;
     else
     {
-        std::cerr << "Invalid mode! Use 'encrypt' or 'decrypt'.\n";
+        std::cerr << "Invalid mode! Use 'encrypt', 'decrypt', 'compress' or 'decompress'.\n";
         return 1;
     }
 
@@ -141,13 +141,20 @@ int main(int argc, char* argv[])
         algorithm = MyCipher::Transposition;
     else if (cipherArg == "vigenere")
         algorithm = MyCipher::Vigenere;
+    else if (cipherArg == "lz77")
+        algorithm = MyCipher::LZ77;
+    else if (cipherArg == "rle")
+        algorithm = MyCipher::RLE;
+    else if (cipherArg == "huffman")
+        algorithm = MyCipher::Huffman;
     else
     {
-        std::cerr << "Invalid cipher! Use 'caesar', 'polybius', 'simple', 'transposition', or 'vigenere'.\n";
+        std::cerr << "Invalid cipher! Use 'caesar', 'polybius', 'simple', 'transposition', 'vigenere', 'lz77', 'rle' or 'huffman'.\n";
         return 1;
     }
 
     Cipher cipher;
+    Compressor compressor;
 
     if (mode == MyMode::ENCRYPT)
     {
@@ -257,7 +264,6 @@ int main(int argc, char* argv[])
             std::string fileContent((std::istreambuf_iterator<char>(inputFile)), std::istreambuf_iterator<char>());
             inputFile.close();
             Encrypted = fileContent;
-
         }
         switch (algorithm)
         {
@@ -319,6 +325,96 @@ int main(int argc, char* argv[])
         }
         default:
             std::cerr << "Cipher not implemented for decryption.\n";
+            return 1;
+        }
+    }
+    else if (mode == MyMode::COMPRESS)
+    {
+        std::string Original, Compressed;
+        if (inputType == MyFile::Text)
+        {
+            std::cout << "Input Text: ";
+            std::getline(std::cin, Original);
+        }
+        else if (inputType == MyFile::File)
+        {
+            std::ifstream inputFile(inputPath, std::ios::in);
+            if (!inputFile)
+            {
+                std::cerr << "Failed to open input file.\n";
+                return 1;
+            }
+            std::string fileContent((std::istreambuf_iterator<char>(inputFile)), std::istreambuf_iterator<char>());
+            inputFile.close();
+            Original = fileContent;
+        }
+        switch (algorithm)
+        {
+        case MyCipher::LZ77:
+        {
+            compressor.lz77()->Compress(Original, Compressed);
+            Write(mode, inputType, outputPath, Compressed);
+            break;
+        }
+        case MyCipher::RLE:
+        {
+            compressor.rle()->Compress(Original, Compressed);
+            Write(mode, inputType, outputPath, Compressed);
+            break;
+        }
+        case MyCipher::Huffman:
+        {
+            compressor.huffman()->Compress(Original, Compressed);
+            Write(mode, inputType, outputPath, Compressed);
+            break;
+        }
+        default:
+            std::cerr << "Compressor not implemented for compression.\n";
+            return 1;
+        }
+    }
+    else if (mode == MyMode::DECOMPRESS)
+    {
+        std::string Compressed, Decompressed;
+        if (inputType == MyFile::Text)
+        {
+            std::cout << "Input Compressed Text: ";
+            std::getline(std::cin, Compressed);
+        }
+        else if (inputType == MyFile::File)
+        {
+            std::ifstream inputFile(inputPath, std::ios::in);
+            if (!inputFile)
+            {
+                std::cerr << "Failed to open input file.\n";
+                return 1;
+            }
+            std::string fileContent((std::istreambuf_iterator<char>(inputFile)), std::istreambuf_iterator<char>());
+            inputFile.close();
+            Compressed = fileContent;
+        }
+        switch (algorithm)
+        {
+        case MyCipher::LZ77:
+        {
+            compressor.lz77()->Decompress(Compressed, Decompressed);
+            Write(mode, inputType, outputPath, Decompressed);
+            break;
+        }
+        case MyCipher::RLE:
+        {
+            compressor.rle()->Decompress(Compressed, Decompressed);
+            Write(mode, inputType, outputPath, Decompressed);
+            break;
+        }
+        case MyCipher::Huffman:
+        {
+            compressor.huffman()->Decompress(Compressed, Decompressed);
+            Write(mode, inputType, outputPath, Decompressed);
+            break;
+        }
+        default:
+            std::cerr << "Compressor not implemented for decompression.\n";
             return 1;
         }
     }
