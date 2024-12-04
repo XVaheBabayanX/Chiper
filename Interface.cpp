@@ -107,8 +107,8 @@ int main(int argc, char* argv[])
     {
         inputPath = convertPathToDoubleSlashes(inputArg);
         outputPath = convertPathToDoubleSlashes(outputArg);
-        std::cout << "Input path: " << inputPath << "\n";
-        std::cout << "Output path: " << outputPath << "\n";
+        //std::cout << "Input path: " << inputPath << "\n";
+        //std::cout << "Output path: " << outputPath << "\n";
     }
 
     if (modeArg == "encrypt")
